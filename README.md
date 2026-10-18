@@ -31,16 +31,21 @@
 ## 開発技術
 ### 活用した技術
 #### API・データ
+* HTTP API：M5GOからPCサーバーへのセンサーデータ送信、家族用画面への状態データ提供
+* JSON：センサーデータおよび通知履歴の管理
 * Firebase Realtime Database
 
 #### フレームワーク・ライブラリ・モジュール
-* 
-* 
-
+* Arduino IDE（C++）：M5GO側のプログラム開発
+* M5Unified：M5GO本体の画面・機能の制御
+* WiFi.h、HTTPClient.h：Wi-Fi接続およびHTTP通信
+* Python、Flask：PC側サーバーの構築
+* HTML、CSS、JavaScript：家族用見守り画面の開発
+* requests：LINE Messaging APIへのリクエスト送信
+* unittest：自動テスト
 #### デバイス
 * M5GO IoTスターターキット　V2.7
-* Obniz Starter Kit
-* 
+
 
 ### 独自技術
 #### ハッカソンで開発した独自機能・技術
