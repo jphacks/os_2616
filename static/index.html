@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ミマモリンク｜ご家族の見守り</title>
+<style>
+:root{
+  --bg:#f6f5f1;--surface:#fff;--ink:#1f2623;--sub:#5d6864;--mute:#8a938f;--line:#d9ddd6;--line2:#eceee9;
+  --g:#2c6e5a;
+  --ok:#2c6e5a;--okbg:#e8f0eb;
+  --chk:#8a5a00;--chkbg:#fbf0d9;
+  --alert:#b23c17;--alertbg:#fbe8e0;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#131715;--surface:#1a1f1d;--ink:#e7ebe8;--sub:#a3ada9;--mute:#7b8581;--line:#2e3532;--line2:#242a27;
+  --g:#6cc1a2;--ok:#6cc1a2;--okbg:#1c2b25;--chk:#e6b450;--chkbg:#2e2614;--alert:#f08a63;--alertbg:#35201a;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131715;--surface:#1a1f1d;--ink:#e7ebe8;--sub:#a3ada9;--mute:#7b8581;--line:#2e3532;--line2:#242a27;
+  --g:#6cc1a2;--ok:#6cc1a2;--okbg:#1c2b25;--chk:#e6b450;--chkbg:#2e2614;--alert:#f08a63;--alertbg:#35201a;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2{margin:0}
+h2{font-size:1rem;font-weight:700}
+
+/* ヘッダー */
+.bar{background:var(--surface);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1040px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:1.05rem;letter-spacing:.03em;margin-right:auto}
+.sync{font-size:.8rem;color:var(--sub)}
+.sync.bad{color:var(--alert)}
+
+main{max-width:1040px;margin:0 auto;padding:24px 16px 40px}
+
+/* 状態 */
+.status{background:var(--okbg);border-left:6px solid var(--ok);border-radius:8px;padding:22px 26px;margin-bottom:32px}
+.status[data-state="idle"]{background:var(--alertbg);border-left-color:var(--alert)}
+.status[data-state="offline"],.status[data-state="noserver"]{background:var(--chkbg);border-left-color:var(--chk)}
+.status-meta{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:.85rem;color:var(--sub)}
+.state{font-weight:700;color:var(--ok)}
+.status[data-state="idle"] .state{color:var(--alert)}
+.status[data-state="offline"] .state,.status[data-state="noserver"] .state{color:var(--chk)}
+.status h1{font-size:1.75rem;line-height:1.35;margin:6px 0}
+.status p{margin:0;max-width:40em}
+.last{margin-top:16px;display:flex;gap:4px 14px;align-items:baseline;flex-wrap:wrap}
+.last-label{font-size:.85rem;color:var(--sub)}
+.last-time{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
+.last-ago{font-size:.9rem;color:var(--sub);font-variant-numeric:tabular-nums}
+
+.cols{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;align-items:start}
+@media (max-width:860px){.cols{grid-template-columns:1fr;gap:28px}.status h1{font-size:1.45rem}.status{padding:18px}}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.date{font-size:.85rem;color:var(--sub)}
+
+/* 通知の記録 */
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:6.2em 1fr auto;gap:4px 12px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line2)}
+.log time{font-variant-numeric:tabular-nums;color:var(--sub);font-size:.9rem}
+.log-text b{font-weight:600}
+.log-text small{display:block;color:var(--sub);font-size:.85rem;font-variant-numeric:tabular-nums}
+.log li[data-kind="idle"] .log-text b{color:var(--alert)}
+.log li[data-kind="offline"] .log-text b{color:var(--chk)}
+.src{font-size:.75rem;color:var(--sub);border:1px solid var(--line);border-radius:4px;padding:0 6px;white-space:nowrap}
+.src[data-line="sent"]{color:var(--g);border-color:var(--g)}
+.src[data-line="failed"]{color:var(--alert);border-color:var(--alert)}
+@media (max-width:480px){
+  .log li{grid-template-columns:1fr auto}
+  .log time{grid-column:1 / -1}
+}
+.empty{color:var(--sub);font-size:.9rem;padding:14px 0;margin:0}
+
+/* 右側 */
+.blk{padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid var(--line)}
+.blk h2{margin-bottom:10px}
+.dev{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.dev small{color:var(--sub);font-size:.85rem}
+.dev-st{font-size:.85rem;color:var(--sub);white-space:nowrap}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mute);margin-right:6px}
+.dev.on .dev-st{color:var(--ok);font-weight:600}.dev.on .dot{background:var(--ok)}
+.sum{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:0;font-size:.9rem}
+.sum dt{color:var(--sub)}.sum dd{margin:0}
+
+/* 共通部品 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px 18px;border:1px solid var(--line);border-radius:8px;
+  background:var(--surface);color:var(--ink);font:inherit;font-size:.95rem;font-weight:600;cursor:pointer;text-decoration:none}
+.btn-primary{background:var(--g);border-color:var(--g);color:var(--surface)}
+.link{border:0;background:none;padding:0;color:var(--g);font:inherit;font-size:.85rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.btn:focus-visible,.link:focus-visible,.chip:focus-visible,input:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.actions{margin-top:16px;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:.95rem}
+
+/* 見守りの設定 */
+.blk-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.blk-h h2{margin:0}
+.form label,.form .label{display:block;font-size:.8rem;font-weight:600;color:var(--sub);margin:16px 0 6px}
+.form .label:first-child{margin-top:4px}
+.form input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit}
+.form input[aria-invalid="true"]{border-color:var(--alert)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--sub);padding:6px 14px;border-radius:6px;cursor:pointer;font:inherit;font-size:.9rem;min-height:40px}
+.chip[aria-pressed="true"]{background:var(--okbg);border-color:var(--g);color:var(--g);font-weight:600}
+.save-msg{font-size:.8rem;color:var(--sub);margin:12px 0 0;min-height:1.4em}
+.save-msg.bad{color:var(--alert)}
+.form-note{font-size:.8rem;color:var(--mute);margin:6px 0 0}
+.privacy{font-size:.8rem;color:var(--sub);margin:0}
+
+.foot{max-width:1040px;margin:0 auto;padding:0 16px 24px;display:flex;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;font-size:.75rem;color:var(--mute)}
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand">ミマモリンク</div>
+  <span class="sync" id="sync">接続中…</span>
+</div></header>
+
+<main>
+  <section class="status" id="status-card" data-state="waiting">
+    <div class="status-meta"><span class="state" id="status-label">接続中</span></div>
+    <h1 id="status-head">サーバーに接続しています</h1>
+    <p id="status-note"></p>
+    <div class="actions" id="actions" hidden></div>
+    <div class="last">
+      <span class="last-label">最後に動きを検知した日時</span>
+      <span class="last-time" id="last-motion">―</span>
+      <span class="last-ago" id="elapsed"></span>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section>
+      <div class="sec-h"><h2>通知の記録</h2><span class="date" id="today"></span></div>
+      <ol class="log" id="log"></ol>
+      <p class="empty" id="log-empty">まだ通知はありません。</p>
+    </section>
+
+    <aside>
+      <div class="blk">
+        <h2>センサー</h2>
+        <div class="dev" id="dev">
+          <div><b id="sensor-name">場所が未設定</b><br><small>M5GO・PIRセンサー</small></div>
+          <span class="dev-st"><i class="dot"></i><span id="dev-st">確認中</span></span>
+        </div>
+      </div>
+      <div class="blk">
+        <div class="blk-h">
+          <h2>見守りの設定</h2>
+          <button class="link" id="set-toggle" type="button" aria-expanded="false" aria-controls="set-form">変更する</button>
+        </div>
+        <dl class="sum" id="set-sum">
+          <dt>見守る方</dt><dd id="sum-who">―</dd>
+          <dt>連絡先</dt><dd id="sum-phone">―</dd>
+          <dt>LINEで知らせる目安</dt><dd id="idle-rule">―</dd>
+          <dt>機器の通信確認</dt><dd id="offline-rule">―</dd>
+        </dl>
+        <form class="form" id="set-form" hidden>
+          <span class="label" id="who-label">見守る方</span>
+          <div class="chips" role="group" aria-labelledby="who-label">
+            <button class="chip" type="button" data-who="お母さま" aria-pressed="false">お母さま</button>
+            <button class="chip" type="button" data-who="お父さま" aria-pressed="false">お父さま</button>
+            <button class="chip" type="button" data-who="自分で入力" aria-pressed="false">自分で入力</button>
+          </div>
+          <div id="name-row" hidden>
+            <label for="name-in">お名前</label>
+            <input type="text" id="name-in" maxlength="20" placeholder="例：おばあちゃん" autocomplete="off">
+          </div>
+          <label for="phone-in">連絡先の電話番号</label>
+          <input type="tel" id="phone-in" inputmode="tel" maxlength="20" placeholder="例：09012345678（ハイフンなし）" autocomplete="off">
+          <label for="sensor-in">センサーの場所</label>
+          <input type="text" id="sensor-in" maxlength="20" placeholder="例：リビング" autocomplete="off">
+          <p class="form-note">入力欄から離れる（またはEnterを押す）と自動で保存されます。同じ画面を見ているご家族全員に反映されます。</p>
+          <p class="save-msg" id="save-msg" role="status"></p>
+        </form>
+      </div>
+      <p class="privacy">カメラ・マイクは使わず、生活の変化だけを確認します。</p>
+    </aside>
+  </div>
+</main>
+
+<div class="foot">
+  <span>ミマモリンクは、離れて暮らす家族の安心をそっと支えます。</span>
+  <span id="footer">自動で更新されます</span>
+</div>
+
+<script>
+  const POLL_MS = 2000;
+
+  const $ = (id) => document.getElementById(id);
+  const card = $("status-card");
+
+  const STATES = {
+    waiting: {
+      label: "接続待ち",
+      head: "センサーの反応を待っています",
+      note: () => "M5GOから通信が届くと、ここに様子が表示されます。",
+    },
+    ok: {
+      label: "見守り中",
+      head: "いつも通り過ごされています",
+      note: (d) => `${nameOf(d)}の動きはいつもの範囲です。`,
+    },
+    idle: {
+      label: "要連絡",
+      head: "ご家族からの連絡をおすすめします",
+      note: (d) => `${nameOf(d)}の動きが ${dur(d.idle_seconds)} 以上ありません。${lineNote(d)}一度連絡してみてください。`,
+    },
+    offline: {
+      label: "通信なし",
+      head: "M5GOと通信できません",
+      note: (d) => `M5GOからの通信が ${dur(d.offline_seconds)} 以上届いていません。電源やWi-Fiを確認してください。`,
+    },
+  };
+
+  const KIND_LABELS = {
+    idle: "動きがありませんでした",
+    offline: "M5GOとの通信が途絶えました",
+    motion: "動きを再び検知しました",
+    online: "M5GOとの通信が復旧しました",
+  };
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const nameOf = (d) => d.display_name || "ご家族";
+
+  let lastData = null;
+
+  function dur(sec) {
+    sec = Number(sec) || 0;
+    if (sec >= 3600 && sec % 3600 === 0) return `${sec / 3600}時間`;
+    if (sec >= 60 && sec % 60 === 0) return `${sec / 60}分`;
+    return `${sec}秒`;
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return `${d.getMonth() + 1}月${d.getDate()}日 ` +
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  function formatShort(iso) {
+    const d = new Date(iso);
+    return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function formatClock(iso) {
+    const d = new Date(iso);
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  function formatElapsed(sec) {
+    if (sec < 60) return `${sec}秒前`;
+    if (sec < 3600) return `${Math.floor(sec / 60)}分${sec % 60}秒前`;
+    return `${Math.floor(sec / 3600)}時間${Math.floor(sec % 3600 / 60)}分前`;
+  }
+
+  // いちばん新しい「動きなし」の通知が、LINEに送れたかどうか
+  function lineNote(data) {
+    const entry = (data.notifications || []).find((e) => e.kind === "idle");
+    if (!entry) return "";
+    if (entry.line_status === "sent") return "LINEでお知らせしました。";
+    if (entry.line_status === "failed") return "LINEへのお知らせは送信に失敗しています（再送中）。";
+    return "LINEでお知らせしています。";
+  }
+
+  function lineTag(entry) {
+    if (entry.line_status === "sent") return `LINE送信済 ${formatClock(entry.sent_at)}`;
+    if (entry.line_status === "failed") return "LINE送信失敗・再送中";
+    return "LINE送信待ち";
+  }
+
+  function renderLog(entries) {
+    $("log").replaceChildren(...entries.map((entry) => {
+      const li = document.createElement("li");
+      li.dataset.kind = entry.kind;
+
+      const time = document.createElement("time");
+      time.dateTime = entry.detected_at;
+      time.textContent = formatShort(entry.detected_at);
+
+      const text = document.createElement("span");
+      text.className = "log-text";
+      const title = document.createElement("b");
+      title.textContent = KIND_LABELS[entry.kind] || entry.kind;
+      const motion = document.createElement("small");
+      motion.textContent = "最後の動き " +
+        (entry.last_motion ? formatDate(entry.last_motion) : "記録なし");
+      text.append(title, motion);
+
+      const tag = document.createElement("span");
+      tag.className = "src";
+      tag.dataset.line = entry.line_status;
+      tag.textContent = lineTag(entry);
+
+      li.append(time, text, tag);
+      return li;
+    }));
+    $("log-empty").hidden = entries.length > 0;
+  }
+
+  // 要連絡のときの「電話する」ボタン
+  function renderActions(data) {
+    const box = $("actions");
+    const phone = (data.settings || {}).phone;
+    if (data.status !== "idle") {
+      box.hidden = true;
+      box.replaceChildren();
+      return;
+    }
+    const key = phone || "";
+    if (box.dataset.key === key && !box.hidden) return; // 変わっていなければ作り直さない
+    box.dataset.key = key;
+    if (phone) {
+      const a = document.createElement("a");
+      a.className = "btn btn-primary";
+      a.href = `tel:${phone}`;
+      a.textContent = `${phone} に電話する`;
+      box.replaceChildren(a);
+    } else {
+      const span = document.createElement("span");
+      span.textContent = "連絡先の電話番号が未登録です。";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "link";
+      btn.textContent = "電話番号を登録する";
+      btn.onclick = () => { openForm(true); $("phone-in").focus(); };
+      box.replaceChildren(span, btn);
+    }
+    box.hidden = false;
+  }
+
+  function renderSettings(data) {
+    const st = data.settings || {};
+    $("sensor-name").textContent = st.sensor_name || "場所が未設定";
+    $("sum-who").textContent = nameOf(data);
+    $("sum-phone").textContent = st.phone || "未登録";
+    document.querySelectorAll("[data-who]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(b.dataset.who === st.who));
+    });
+    $("name-row").hidden = st.who !== "自分で入力";
+  }
+
+  // 入力中の欄は書き換えない（打っている途中の文字が消えないように）
+  function fillForm(st, force) {
+    const fields = { "name-in": st.name, "phone-in": st.phone, "sensor-in": st.sensor_name };
+    for (const [id, value] of Object.entries(fields)) {
+      const el = $(id);
+      if (force || document.activeElement !== el) el.value = value || "";
+    }
+  }
+
+  function openForm(open) {
+    $("set-form").hidden = !open;
+    $("set-sum").hidden = open;
+    $("set-toggle").textContent = open ? "閉じる" : "変更する";
+    $("set-toggle").setAttribute("aria-expanded", String(open));
+    $("save-msg").textContent = "";
+    if (open && lastData) fillForm(lastData.settings || {}, true);
+  }
+
+  async function saveSettings(patch, inputId) {
+    const msg = $("save-msg");
+    msg.textContent = "保存しています…";
+    msg.classList.remove("bad");
+    try {
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "保存できませんでした");
+      if (inputId) $(inputId).setAttribute("aria-invalid", "false");
+      if (lastData) {
+        lastData.settings = body.settings;
+        lastData.display_name = body.display_name;
+        render(lastData);
+      }
+      fillForm(body.settings, false);
+      msg.textContent = "保存しました";
+    } catch (e) {
+      if (inputId) $(inputId).setAttribute("aria-invalid", "true");
+      msg.textContent = `保存できませんでした：${e.message === "Failed to fetch" ? "サーバーに接続できません" : e.message}`;
+      msg.classList.add("bad");
+    }
+  }
+
+  $("set-toggle").onclick = () => openForm($("set-form").hidden);
+  $("set-form").onsubmit = (e) => e.preventDefault();
+  document.querySelectorAll("[data-who]").forEach((b) => {
+    b.onclick = () => saveSettings({ who: b.dataset.who });
+  });
+  [["name-in", "name"], ["phone-in", "phone"], ["sensor-in", "sensor_name"]].forEach(([id, key]) => {
+    $(id).onchange = () => saveSettings({ [key]: $(id).value }, id);
+    $(id).onkeydown = (e) => { if (e.key === "Enter") $(id).blur(); };
+  });
+
+  function render(data) {
+    lastData = data;
+    const s = STATES[data.status] || STATES.waiting;
+    card.dataset.state = data.status;
+    $("status-label").textContent = s.label;
+    $("status-head").textContent = s.head;
+    $("status-note").textContent = s.note(data);
+    renderActions(data);
+    renderSettings(data);
+
+    if (data.last_motion) {
+      $("last-motion").textContent = formatDate(data.last_motion);
+      $("elapsed").textContent = `（${formatElapsed(data.seconds_since_motion)}）`;
+    } else {
+      $("last-motion").textContent = "まだ検知していません";
+      $("elapsed").textContent = "";
+    }
+
+    const online = data.status === "ok" || data.status === "idle";
+    $("dev").classList.toggle("on", online);
+    $("dev-st").textContent = online ? "オンライン" : (data.status === "waiting" ? "未接続" : "オフライン");
+
+    $("idle-rule").textContent = `動きがない状態が ${dur(data.idle_seconds)} 続いたとき`;
+    $("offline-rule").textContent = `${dur(data.offline_seconds)} 通信がなければお知らせ`;
+
+    renderLog(data.notifications || []);
+
+    $("today").textContent = new Date(data.server_time)
+      .toLocaleDateString("ja-JP", { month: "long", day: "numeric", weekday: "short" });
+    $("sync").textContent = "● 自動更新中";
+    $("sync").classList.remove("bad");
+    $("footer").textContent = `最終更新 ${formatClock(data.server_time)}`;
+  }
+
+  function renderNoServer() {
+    card.dataset.state = "noserver";
+    $("status-label").textContent = "接続できません";
+    $("status-head").textContent = "サーバーに接続できません";
+    $("status-note").textContent = "パソコンで server.py が起動しているか、同じWi-Fiにつながっているか確認してください。";
+    $("actions").hidden = true;
+    $("dev").classList.remove("on");
+    $("dev-st").textContent = "不明";
+    $("sync").textContent = "接続できません（再接続しています）";
+    $("sync").classList.add("bad");
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch("/api/status", { cache: "no-store" });
+      if (!res.ok) throw new Error(res.status);
+      render(await res.json());
+    } catch (e) {
+      renderNoServer();
+    } finally {
+      setTimeout(poll, POLL_MS);
+    }
+  }
+
+  poll();
+</script>
+</body>
+</html>
