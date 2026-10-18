@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ミマモリンク｜ご家族の見守り</title>
+<style>
+:root{
+  --bg:#f6f5f1;--surface:#fff;--ink:#1f2623;--sub:#5d6864;--mute:#8a938f;--line:#d9ddd6;--line2:#eceee9;
+  --g:#2c6e5a;--g-ink:#fff;
+  --ok:#2c6e5a;--okbg:#e8f0eb;
+  --chk:#8a5a00;--chkbg:#fbf0d9;
+  --alert:#b23c17;--alertbg:#fbe8e0;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#131715;--surface:#1a1f1d;--ink:#e7ebe8;--sub:#a3ada9;--mute:#7b8581;--line:#2e3532;--line2:#242a27;
+  --g:#6cc1a2;--g-ink:#0f1a16;--ok:#6cc1a2;--okbg:#1c2b25;--chk:#e6b450;--chkbg:#2e2614;--alert:#f08a63;--alertbg:#35201a;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131715;--surface:#1a1f1d;--ink:#e7ebe8;--sub:#a3ada9;--mute:#7b8581;--line:#2e3532;--line2:#242a27;
+  --g:#6cc1a2;--g-ink:#0f1a16;--ok:#6cc1a2;--okbg:#1c2b25;--chk:#e6b450;--chkbg:#2e2614;--alert:#f08a63;--alertbg:#35201a;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2{margin:0}
+h2{font-size:1rem;font-weight:700}
+
+/* ヘッダー */
+.bar{background:var(--surface);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1040px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:1.05rem;letter-spacing:.03em;margin-right:auto}
+.sync{font-size:.8rem;color:var(--sub)}
+.link{border:0;background:none;padding:0;color:var(--g);font:inherit;font-size:.85rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+main{max-width:1040px;margin:0 auto;padding:24px 20px 40px}
+
+/* 共通部品 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px 18px;border:1px solid var(--line);border-radius:8px;
+  background:var(--surface);color:var(--ink);font:inherit;font-size:.95rem;font-weight:600;cursor:pointer;text-decoration:none}
+.btn-primary{background:var(--g);border-color:var(--g);color:var(--g-ink)}
+.btn:focus-visible,.link:focus-visible,.chip:focus-visible,input:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+input[type=text],input[type=tel],input[type=number]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--sub);padding:6px 14px;border-radius:6px;cursor:pointer;font:inherit;font-size:.9rem}
+.chip[aria-pressed=true]{background:var(--okbg);border-color:var(--g);color:var(--g);font-weight:600}
+
+/* リンクコード */
+.codebox{display:flex;align-items:center;gap:12px 24px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:24px}
+.codebox b{display:block;font-size:.95rem}
+.codebox p{margin:0;font-size:.85rem;color:var(--sub)}
+.codebox code{font-size:.85em}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.6rem;font-weight:700;letter-spacing:.22em}
+.codebox-a{margin-left:auto;display:flex;gap:16px;align-items:center}
+.notice{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:.9rem;color:var(--sub);margin:0 0 20px}
+.code-small{font-size:.85rem;color:var(--sub);margin:0}
+.code-small span{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.15em;color:var(--ink);margin:0 8px}
+
+/* 状態 */
+.status{background:var(--okbg);border-left:6px solid var(--ok);border-radius:8px;padding:22px 26px;margin-bottom:32px}
+.status.contact{background:var(--alertbg);border-left-color:var(--alert)}
+.status-meta{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:.85rem;color:var(--sub)}
+.state{font-weight:700;color:var(--ok)}
+.contact .state{color:var(--alert)}
+.status h1{font-size:1.75rem;line-height:1.35;margin:6px 0}
+.status p{margin:0;max-width:40em}
+.actions{margin-top:16px;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:.95rem}
+.count{font-weight:700;font-variant-numeric:tabular-nums}
+
+.cols{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;align-items:start}
+@media (max-width:860px){.cols{grid-template-columns:1fr;gap:28px}.status h1{font-size:1.45rem}.status{padding:18px 18px}}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.date{font-size:.85rem;color:var(--sub)}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:3.4em 1fr auto;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line2)}
+.log time{font-variant-numeric:tabular-nums;color:var(--sub);font-size:.9rem}
+.src{font-size:.75rem;color:var(--sub);border:1px solid var(--line);border-radius:4px;padding:0 6px;white-space:nowrap}
+.src.me{color:var(--g);border-color:var(--g)}
+.empty{color:var(--sub);font-size:.9rem;padding:14px 0;margin:0}
+
+.blk{padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid var(--line)}
+.blk h2{margin-bottom:10px}
+.dev{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.dev small{color:var(--sub);font-size:.85rem}
+.dev-st{font-size:.85rem;color:var(--sub);white-space:nowrap}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mute);margin-right:6px}
+.dev.on .dev-st{color:var(--ok);font-weight:600}.dev.on .dot{background:var(--ok)}
+.sum{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:0;font-size:.9rem}
+.sum dt{color:var(--sub)}.sum dd{margin:0}
+.form label{display:block;font-size:.8rem;font-weight:600;color:var(--sub);margin:16px 0 6px}
+.form .two{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.form .code-small{margin-top:18px}
+.privacy{font-size:.8rem;color:var(--sub);margin:0}
+
+/* デモ操作 */
+.demo{margin-top:40px;padding-top:14px;border-top:1px dashed var(--line);font-size:.85rem;color:var(--sub)}
+.demo-h{display:flex;gap:4px 12px;flex-wrap:wrap;align-items:baseline;margin-bottom:10px}
+.demo-h b{color:var(--ink);font-weight:600}
+.demo-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.demo-row>span{min-width:6.5em}
+.demo .btn{min-height:36px;padding:6px 14px;font-size:.85rem;font-weight:500}
+
+/* リンク設定 */
+.link-page{max-width:760px;margin:16px auto}
+.link-page h1{font-size:1.6rem}
+.lead{color:var(--sub);margin:4px 0 24px}
+.link-cols{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.link-cols section{padding:22px 24px 24px 0}
+.link-cols section+section{padding:22px 0 24px 24px;border-left:1px solid var(--line)}
+.link-cols p{font-size:.9rem;color:var(--sub);margin:4px 0 16px}
+.step{font-size:.8rem;color:var(--mute);display:block;margin-bottom:2px}
+.join{display:flex;gap:8px}
+#codeIn{max-width:170px;text-transform:uppercase;text-align:center;letter-spacing:.22em;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.1rem}
+.solo{margin-top:18px;font-size:.85rem;color:var(--sub)}
+@media (max-width:640px){.link-cols{grid-template-columns:1fr}.link-cols section,.link-cols section+section{padding:20px 0;border-left:0}.link-cols section+section{border-top:1px solid var(--line)}}
+
+.foot{max-width:1040px;margin:0 auto;padding:0 20px 24px;display:flex;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;font-size:.75rem;color:var(--mute)}
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand">ミマモリンク</div>
+  <span class="sync" id="sync">接続中…</span>
+  <button class="link" id="cfg">同期設定</button>
+</div></header>
+<main>
+<div id="view"></div>
+</main>
+<div class="foot"><span>ミマモリンクは、離れて暮らす家族の安心をそっと支えます。</span></div>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+  // ご本人からの報告（過去データ表示用）。これ以外の記録はすべて「センサーの検知」として扱う
+  var REPORTS={mwake:"起床を知らせました",meal:"食事をしました",med:"お薬を飲みました",out:"外出しました",home:"帰宅しました",sleep:"おやすみになりました"};
+  function evText(k){return REPORTS[k]||(cur.sensorName?esc(cur.sensorName)+"で動きを検知":"動きを検知")}
+  function defaults(){return {who:"お母さま",name:"",phone:"",thresholdSec:30,confirmSec:20,lastDetect:0,events:[],resp:null,respAt:0,lastSeen:0,sensorName:"",paused:null}}
+  var skew=0;function nowMs(){return Date.now()+skew}
+  var lastHTML="",cur=defaults(),DB=(function(){try{return (new URLSearchParams(location.search).get("db")||localStorage.getItem("mimamori_db")||"").replace(/\/+$/,"")}catch(e){return ""}})(),syncMsg="接続中…",showSet=false;
+
+  var CODE=(function(){try{var q=new URLSearchParams(location.search).get("code");if(q)localStorage.setItem("mimamori_code",q.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6));return localStorage.getItem("mimamori_code")||""}catch(e){return ""}})(),localOnly=false;
+  function storeCode(c){try{if(c)localStorage.setItem("mimamori_code",c);else localStorage.removeItem("mimamori_code")}catch(e){}}
+  function genCode(){var A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",b=new Uint8Array(6),o="";(window.crypto||{getRandomValues:function(x){for(var i=0;i<x.length;i++)x[i]=Math.random()*256}}).getRandomValues(b);for(var i=0;i<6;i++)o+=A[b[i]%A.length];return o}
+  // ほかのご家族に送るリンク（開くだけで同じ見守りデータにつながる）
+  function shareText(){return location.href.split(/[?#]/)[0]+"?db="+encodeURIComponent(DB)+"&code="+CODE}
+  function codeBar(small){
+    if(!CODE)return '<div class="notice"><span>同期していません。この端末だけで動いています。</span><button class="link" id="unlink">リンクコードを設定する</button></div>';
+    if(small)return '<p class="code-small">リンクコード<span>'+CODE+'</span><button class="link" id="copy">共有リンクをコピー</button>　<button class="link" id="unlink">解除</button></p>';
+    return '<div class="codebox"><div><b>M5GOがまだつながっていません</b><p>M5GOのスケッチの <code>LINK_CODE</code> に、このコードを設定してください。</p></div><div class="code">'+CODE+'</div><div class="codebox-a"><button class="btn" id="copy">共有リンクをコピー</button><button class="link" id="unlink">解除</button></div></div>';
+  }
+  function linkHTML(){
+    return '<div class="link-page"><h1>はじめに</h1><p class="lead">M5GOとこの画面を、6文字のリンクコードでつなぎます。</p>'+
+    '<div class="link-cols"><section><span class="step">はじめて使う場合</span><h2>コードを発行する</h2><p>発行したコードを、M5GOのスケッチの <code>LINK_CODE</code> に書き込みます。</p><button class="btn btn-primary" id="newCode">コードを発行する</button></section>'+
+    '<section><span class="step">ほかのご家族がすでに使っている場合</span><h2>コードを入力する</h2><p>共有されたコード（6文字）を入力すると、同じ見守り情報を見られます。</p><div class="join"><input type="text" id="codeIn" maxlength="6" placeholder="K7M2QX" aria-label="リンクコード"><button class="btn" id="joinCode">つなぐ</button></div></section></div>'+
+    '<p class="solo"><button class="link" id="solo">同期せずに試す</button>　この端末だけで動作を確認できます。</p></div>';
+  }
+  function hm(ts){var d=new Date(ts);return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
+  function nm(){return cur.who==="自分で入力"?(cur.name||"ご家族"):cur.who}
+  function derive(){
+    var d=cur,now=nowMs();
+    if(d.paused)return {s:"ok",left:0,paused:d.paused};
+    if(!d.lastDetect)return {s:"ok",left:0,wait:true};
+    var el=(now-d.lastDetect)/1000;
+    if(el<d.thresholdSec)return {s:"ok",left:0};
+    return {s:"contact"};  // 確認の段階はなし：無動作が続いたらすぐ要連絡
+  }
+  function dur(sec){sec=+sec||0;return sec>=3600&&sec%3600===0?(sec/3600)+"時間":sec>=60&&sec%60===0?(sec/60)+"分":sec+"秒"}
+  function fail(e){syncMsg=(e===401||e===403)?"同期できません：Firebaseのルール（読み書き許可）を確認してください":(e===404?"同期できません：データベースURLを確認してください":"同期できません：通信状況またはURLを確認してください");setSync()}
+  function put(m,body){return fetch(url(),{method:m,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){if(!r.ok)throw r.status}).catch(fail)}
+  function save(p){cur=Object.assign({},cur,p);render();if(DB&&CODE)put("PATCH",p)}
+  function setSync(){$("sync").textContent=syncMsg}
+  function detect(k){var ev=(cur.events||[]).slice(-19);ev.push({ts:nowMs(),k:k});save({lastDetect:nowMs(),events:ev,resp:null,respAt:0,paused:null})}
+
+  function familyHTML(){
+    var r=derive(),n=esc(nm()),e=(cur.events||[]).slice().reverse().slice(0,6),last=cur.lastDetect;
+    var online=nowMs()-(cur.lastSeen||0)<45000;
+    var st="",label,head,desc,act="";
+    if(r.s==="ok"){
+      label=r.paused==="out"?"外出中":r.paused==="sleep"?"おやすみ中":"見守り中";
+      head=r.paused==="out"?"外出中です":r.paused==="sleep"?"おやすみ中です":r.wait?"センサーの反応を待っています":"いつも通り過ごされています";
+      desc=r.paused==="out"?n+"が「出かけます」と知らせました。帰宅の連絡があるまで確認はお休みします。":r.paused==="sleep"?n+"が「おやすみ」と知らせました。起床の連絡や動きがあれば見守りを再開します。":r.wait?"M5GOのセンサーが動きを検知すると、ここに様子が表示されます。":n+"の動きはいつもの範囲です。";
+    }else{
+      st=" contact";label="要連絡";head="ご家族からの連絡をおすすめします";
+      desc=n+"の動きが "+dur(cur.thresholdSec)+" 以上ありません。一度連絡してみてください。";
+      act=cur.phone?'<a class="btn btn-primary" href="tel:'+esc(cur.phone)+'">'+esc(cur.phone)+' に電話する</a>':'<span>連絡先の電話番号が未登録です。</span><button class="link" id="openSet">電話番号を登録する</button>';
+    }
+    var tl=e.length?'<ol class="log">'+e.map(function(x){var me=!!REPORTS[x.k];return '<li><time>'+hm(x.ts)+'</time><span>'+evText(x.k)+'</span><span class="src'+(me?" me":"")+'">'+(me?"ご本人":"センサー")+'</span></li>'}).join("")+"</ol>":'<p class="empty">今日はまだ記録がありません。</p>';
+    var chips=["お母さま","お父さま","自分で入力"].map(function(w){return '<button class="chip" data-who="'+w+'" aria-pressed="'+(cur.who===w)+'">'+w+'</button>'}).join("");
+    var settings=showSet?
+      '<div class="form"><label>見守る方</label><div class="chips" id="chips">'+chips+'</div>'+
+      (cur.who==="自分で入力"?'<label for="nameIn">お名前</label><input type="text" id="nameIn" placeholder="例：おばあちゃん" value="'+esc(cur.name)+'">':"")+
+      '<label for="phone">連絡先の電話番号</label><input type="tel" id="phone" inputmode="numeric" placeholder="例：09012345678（ハイフンなし）" value="'+esc(cur.phone)+'">'+
+      '<label for="sname">センサーの場所</label><input type="text" id="sname" placeholder="例：リビング" value="'+esc(cur.sensorName)+'">'+
+(CODE&&online?codeBar(true):"")+'</div>'
+      :'<dl class="sum"><dt>見守る方</dt><dd>'+n+'</dd><dt>連絡先</dt><dd>'+(cur.phone?esc(cur.phone):"未登録")+'</dd><dt>要連絡の目安</dt><dd>動きがない状態が '+dur(cur.thresholdSec)+' 続いたとき</dd></dl>';
+    // デモ操作：M5GOがなくても流れを再現できる（実機の操作と同じデータを書き込む）
+    var demo='<div class="demo"><div class="demo-h"><b>デモ操作</b><span>M5GOがなくても動きを確認できます</span></div>'+
+      '<div class="demo-row"><span>センサー</span><button class="btn" data-k="motion">動きを検知</button></div>'+
+      (r.s==="contact"?'<div class="demo-row"><span>本人の応答</span><button class="btn" id="okA">A 元気です（M5GOのAボタン）</button></div>':"")+
+      '<div class="demo-row"><span></span><button class="btn" id="reset">最初に戻す</button></div></div>';
+    return ((!CODE||!online)?codeBar():"")+
+      '<section class="status'+st+'"><div class="status-meta"><span class="state">'+label+'</span>'+(last?'<span>最終検知 '+hm(last)+'</span>':"")+'</div>'+
+      '<h1>'+head+'</h1><p>'+desc+'</p>'+(act?'<div class="actions">'+act+'</div>':"")+'</section>'+
+      '<div class="cols"><section><div class="sec-h"><h2>今日の記録</h2><span class="date">'+new Date().toLocaleDateString("ja-JP",{month:"long",day:"numeric",weekday:"short"})+'</span></div>'+tl+'</section>'+
+      '<aside><div class="blk"><h2>センサー</h2><div class="dev'+(online?" on":"")+'"><div><b>'+(cur.sensorName?esc(cur.sensorName):"場所が未設定")+'</b><br><small>M5GO・PIRセンサー</small></div><span class="dev-st"><i class="dot"></i>'+(online?"オンライン":"オフライン")+'</span></div></div>'+
+      '<div class="blk"><div class="sec-h" style="border:0;padding:0 0 10px"><h2 style="margin:0">見守りの設定</h2><button class="link" id="setToggle">'+(showSet?"閉じる":"変更する")+'</button></div>'+settings+'</div>'+
+      '<p class="privacy">カメラ・マイクは使わず、生活の変化だけを確認します。</p></aside></div>'+demo;
+  }
+
+  function render(){
+    var v=$("view"),a=document.activeElement&&document.activeElement.id;
+    if(a==="nameIn"||a==="sname"||a==="codeIn"||a==="phone")return; // 入力中は再描画しない
+    var html=(!CODE&&!localOnly)?linkHTML():familyHTML();
+    if(html!==lastHTML){v.innerHTML=html;lastHTML=html;bind()}
+  }
+  function bind(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-who]"),function(b){b.onclick=function(){save({who:b.getAttribute("data-who")})}});
+    Array.prototype.forEach.call(document.querySelectorAll("[data-k]"),function(b){b.onclick=function(){detect(b.getAttribute("data-k"))}});
+    var bind2=function(id,key,num){var el=$(id);if(el)el.onchange=function(){var v=num?Math.max(10,+el.value||30):el.value;var p={};p[key]=v;save(p)}};
+    bind2("nameIn","name");bind2("sname","sensorName");if(el=$("phone"))el.onchange=function(){var v=this.value.replace(/[^0-9+]/g,"");this.value=v;save({phone:v})}; // ハイフン・空白は自動で除去    var el;
+    if(el=$("newCode"))el.onclick=function(){CODE=genCode();storeCode(CODE);start();render()};
+    if(el=$("joinCode"))el.onclick=function(){var c=($("codeIn").value||"").toUpperCase().replace(/[^A-Z0-9]/g,"");if(c.length!==6){$("codeIn").style.borderColor="var(--alert)";return}CODE=c;storeCode(c);start();render()};
+    if(el=$("solo"))el.onclick=function(){localOnly=true;render()};
+    if(el=$("unlink"))el.onclick=function(){CODE="";localOnly=false;storeCode("");start();render()};
+    if(el=$("copy"))el.onclick=function(){var t=shareText(),b=el;try{navigator.clipboard.writeText(t).then(function(){b.textContent="コピーしました"},function(){prompt("コピーしてください",t)})}catch(e){prompt("コピーしてください",t)}};
+    if(el=$("setToggle"))el.onclick=function(){showSet=!showSet;lastHTML="";render()};
+    if(el=$("openSet"))el.onclick=function(){showSet=true;lastHTML="";render();var p=$("phone");if(p)p.focus()};
+    if($("reset"))$("reset").onclick=function(){var d=defaults();d.who=cur.who;d.name=cur.name;d.phone=cur.phone;d.sensorName=cur.sensorName;d.thresholdSec=cur.thresholdSec;d.confirmSec=cur.confirmSec;d.lastDetect=nowMs();d.lastSeen=cur.lastSeen;cur=d;render();if(DB&&CODE)put("PUT",d)};
+    if($("okA"))$("okA").onclick=function(){save({lastDetect:nowMs(),resp:"A",respAt:nowMs()})};  }
+
+  setInterval(render,1000);
+
+  var es=null,poll=null;
+  function syncClock(){var t0=Date.now(),u=DB+"/mimamori/"+CODE+"/_clock.json";
+    return fetch(u,{method:"PUT",headers:{"Content-Type":"application/json"},body:'{".sv":"timestamp"}'}).then(function(r){return r.ok?r.json():Promise.reject(r.status)}).then(function(v){return typeof v==="number"?v:fetch(u).then(function(r){return r.json()})}).then(function(v){var t1=Date.now();if(typeof v==="number")skew=v-(t0+t1)/2}).catch(fail)}
+  function url(){return DB+"/mimamori/"+CODE+".json"}
+  function pull(){fetch(url()).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(function(d){cur=Object.assign(defaults(),d||{});syncMsg="● 同期中";setSync();render()}).catch(fail)}
+  $("cfg").onclick=function(){
+    var v=prompt("Firebase Realtime Database のURLを入力してください\n例：https://xxxx-default-rtdb.firebaseio.com\n（空欄で同期をオフ）",DB);
+    if(v===null)return;v=v.trim();if(v&&!/^https?:\/\//.test(v))v="https://"+v;v=v.replace(/\/+$/,"");try{localStorage.setItem("mimamori_db",v)}catch(e){}
+    history.replaceState(null,"",location.pathname);location.reload();
+  };
+  function start(){
+    if(es){es.close();es=null}if(poll){clearInterval(poll);poll=null}cur=defaults();lastHTML="";
+    if(!CODE){syncMsg=localOnly?"この画面のみで動作（同期なし）":"リンクコード未設定";setSync();render();return}
+    if(!DB){syncMsg="同期未設定：この画面のみで動作（右上「同期設定」でURLを入力）";setSync();render();return}
+    syncMsg="接続中…";setSync();syncClock().then(pull);poll=setInterval(pull,5000);
+    try{es=new EventSource(url());es.addEventListener("put",pull);es.addEventListener("patch",pull);es.onerror=function(){syncMsg="再接続中…";setSync()}}catch(e){}
+  }
+  start();
+  render();
+})();
+</script>
+</body>
+</html>
